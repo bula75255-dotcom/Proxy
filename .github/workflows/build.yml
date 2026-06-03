@@ -1,19 +1,28 @@
-name: Build
+name: Build Real iOS IPA
+
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Package
-      run: |
-        mkdir -p Payload
-        echo "ProxyX" > Payload/info.txt
-        zip -r ProxyX.ipa Payload/
-    - uses: actions/upload-artifact@v3
-      with:
-        name: ProxyX-IPA
-        path: ProxyX.ipa
+      - uses: actions/checkout@v4
+
+      - name: Build iOS app (unsigned)
+        run: |
+          cd ProxyX
+          xcodebuild -project ProxyX.xcodeproj -scheme ProxyX -sdk iphoneos -configuration Release build CODE_SIGNING_ALLOWED=NO
+
+      - name: Create IPA
+        run: |
+          mkdir -p Payload
+          cp -r ProxyX/build/Release-iphoneos/ProxyX.app Payload/
+          zip -r ProxyX.ipa Payload/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProxyX.ipa
+          path: ProxyX.ipa
